@@ -8,26 +8,29 @@ import {
   Grid, 
   Zap, 
   HelpCircle,
-  Gavel
+  Gavel,
+  MessageCircle
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { Dashboard } from './components/Dashboard';
 import { LeadKanban } from './components/LeadKanban';
 import { Lead } from './types';
 import { LeadDetails } from './components/LeadDetails';
+import { WhatsAppConfig } from './components/WhatsAppConfig';
 import { AnimatePresence, motion } from 'motion/react';
 
-type View = 'dashboard' | 'kanban' | 'templates' | 'settings';
+type View = 'dashboard' | 'kanban' | 'messages' | 'templates' | 'settings';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<View>('kanban');
+  const [currentView, setCurrentView] = useState<View>('messages');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
   const menuItems = [
     { id: 'dashboard', icon: BarChart3, label: 'Resumo' },
     { id: 'kanban', icon: Grid, label: 'Pipeline' },
+    { id: 'messages', icon: MessageCircle, label: 'Conversas' },
     { id: 'templates', icon: Zap, label: 'Modelos' },
-    { id: 'settings', icon: Settings, label: 'Ajustes' },
+    { id: 'settings', icon: Settings, label: 'Conexão' },
   ];
 
   return (
@@ -89,6 +92,32 @@ export default function App() {
             </motion.div>
           )}
 
+          {currentView === 'messages' && (
+            <motion.div
+              key="messages"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-full overflow-hidden"
+            >
+              <div className="flex h-full items-center justify-center bg-gray-50 flex-col p-12 text-center">
+                 <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+                    <MessageCircle size={40} />
+                 </div>
+                 <h2 className="text-xl font-bold text-gray-900">Integração WhatsApp Web</h2>
+                 <p className="text-gray-500 max-w-md mt-2">
+                    Para puxar suas conversas automaticamente, conecte sua instância no menu <b>Conexão</b>.
+                 </p>
+                 <button 
+                  onClick={() => setCurrentView('settings')}
+                  className="mt-6 px-6 py-2 bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-100"
+                 >
+                    Configurar Conexão
+                 </button>
+              </div>
+            </motion.div>
+          )}
+
           {currentView === 'kanban' && (
             <motion.div
               key="kanban"
@@ -101,7 +130,19 @@ export default function App() {
             </motion.div>
           )}
 
-          {currentView !== 'dashboard' && currentView !== 'kanban' && (
+          {currentView === 'settings' && (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              className="h-full overflow-y-auto"
+            >
+              <WhatsAppConfig />
+            </motion.div>
+          )}
+
+          {currentView !== 'dashboard' && currentView !== 'kanban' && currentView !== 'messages' && currentView !== 'settings' && (
             <motion.div
               key="fallback"
               initial={{ opacity: 0 }}
