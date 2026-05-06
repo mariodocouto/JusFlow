@@ -19,17 +19,17 @@ async function startServer() {
 
   // --- WEBHOOK WHATSAPP (VALIDAÇÃO) ---
   app.get("/webhook", (req, res) => {
+    console.log("Recebida tentativa de validação de Webhook:", req.query);
     const mode = req.query["hub.mode"];
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
 
-    if (mode && token) {
-      if (mode === "subscribe" && token === VERIFY_TOKEN) {
-        console.log("WEBHOOK_VERIFIED");
-        res.status(200).send(challenge);
-      } else {
-        res.sendStatus(403);
-      }
+    if (mode === "subscribe" && token === VERIFY_TOKEN) {
+      console.log("WEBHOOK_VERIFIED com sucesso!");
+      res.status(200).send(challenge);
+    } else {
+      console.warn("Falha na verificação do token do Webhook. Recebido:", token, "Esperado:", VERIFY_TOKEN);
+      res.sendStatus(403);
     }
   });
 

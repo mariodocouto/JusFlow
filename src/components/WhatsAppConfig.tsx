@@ -118,7 +118,7 @@ export const WhatsAppConfig: React.FC = () => {
                   <div className="space-y-2">
                     <p className="text-[10px] text-gray-500 uppercase font-bold">Callback URL</p>
                     <code className="block p-3 bg-gray-50 rounded-xl text-[10px] break-all font-mono text-indigo-600 border border-gray-100">
-                      https://ais-dev-x4umkr2pejrtz33jqdqubm-214938784011.us-east1.run.app/webhook
+                      https://ais-pre-x4umkr2pejrtz33jqdqubm-214938784011.us-east1.run.app/webhook
                     </code>
                   </div>
                   <div className="space-y-2">
