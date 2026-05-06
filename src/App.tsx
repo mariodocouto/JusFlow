@@ -17,6 +17,7 @@ import { LeadKanban } from './components/LeadKanban';
 import { Lead } from './types';
 import { LeadDetails } from './components/LeadDetails';
 import { WhatsAppConfig } from './components/WhatsAppConfig';
+import { Conversations } from './components/Conversations';
 import { AnimatePresence, motion } from 'motion/react';
 
 type View = 'dashboard' | 'kanban' | 'messages' | 'templates' | 'settings';
@@ -100,21 +101,7 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="h-full overflow-hidden"
             >
-              <div className="flex h-full items-center justify-center bg-gray-50 flex-col p-12 text-center">
-                 <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
-                    <MessageCircle size={40} />
-                 </div>
-                 <h2 className="text-xl font-bold text-gray-900">Integração WhatsApp Web</h2>
-                 <p className="text-gray-500 max-w-md mt-2">
-                    Para puxar suas conversas automaticamente, conecte sua instância no menu <b>Conexão</b>.
-                 </p>
-                 <button 
-                  onClick={() => setCurrentView('settings')}
-                  className="mt-6 px-6 py-2 bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-100"
-                 >
-                    Configurar Conexão
-                 </button>
-              </div>
+              <Conversations />
             </motion.div>
           )}
 

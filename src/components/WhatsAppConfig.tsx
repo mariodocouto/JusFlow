@@ -114,12 +114,25 @@ export const WhatsAppConfig: React.FC = () => {
                </div>
 
                <div className="bg-white p-6 border border-gray-100 rounded-3xl space-y-4">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase">Configuração do Webhook (Meta)</h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-gray-400 uppercase">Configuração do Webhook (Meta)</h4>
+                    <button 
+                      onClick={async () => {
+                        const res = await fetch('/api/debug/webhook');
+                        const data = await res.json();
+                        alert(data.timestamp ? `Último sinal recebido em: ${data.timestamp}` : "Nenhum sinal detectado ainda. Verifique se o link é público.");
+                      }}
+                      className="text-[10px] text-indigo-600 font-bold hover:underline"
+                    >
+                      Testar Conectividade
+                    </button>
+                  </div>
                   <div className="space-y-2">
-                    <p className="text-[10px] text-gray-500 uppercase font-bold">Callback URL</p>
+                    <p className="text-[10px] text-gray-500 uppercase font-bold">Callback URL (Cole isto na Meta)</p>
                     <code className="block p-3 bg-gray-50 rounded-xl text-[10px] break-all font-mono text-indigo-600 border border-gray-100">
-                      https://ais-pre-x4umkr2pejrtz33jqdqubm-214938784011.us-east1.run.app/webhook
+                      {window.location.origin}/webhook
                     </code>
+                    <p className="text-[8px] text-gray-400 italic">* Se o link acima começar com 'ais-dev' ou 'ais-pre', ele é privado e o WhatsApp não conseguirá validar. Use o link do botão 'Publish'.</p>
                   </div>
                   <div className="space-y-2">
                     <p className="text-[10px] text-gray-500 uppercase font-bold">Verify Token</p>
@@ -127,9 +140,6 @@ export const WhatsAppConfig: React.FC = () => {
                       jusflow_secret_token_123
                     </code>
                   </div>
-                  <p className="text-[10px] text-amber-600 font-medium">
-                    * Configure isso no painel da Meta em "Configuração da API &gt; Webhook" para receber mensagens em tempo real.
-                  </p>
                </div>
 
                <button 

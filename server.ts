@@ -5,9 +5,10 @@ import axios from "axios";
 import bodyParser from "body-parser";
 import cors from "cors";
 
-// Configurações do WhatsApp (Preferencialmente via Env)
+// Configurações do WhatsApp (Valores fornecidos pelo usuário)
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || "EAANyytfxNvwBRSeXe1CIoujxQ9WJDAp7EES0glZCaB4OgBnGc6VhINUxvlLuySZAaClo7mUdY5KQRhmRvQeZBDz0Abf49KUO3ziVmHAeFVZAIgdarNRW50o3eapRNL1oC6jfntEwwfa3bNlcK0WBxXXotoXhdJZAZCZA594szuz5ZCaY3SmyK3GkCsHUIarBznNj5bsqVy4tJSte7bRU0GYTqfSMqE1hF3v1NF9FGHtfwN3nZA68KGyfGCSMJbTSZCv3Je8cKnk7maLvxciQFiAGz3x7Q7vWRlKoXnlWAZD";
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || "1037735152765682";
+const WABA_ID = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID || "811343602044981";
 const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || "jusflow_secret_token_123";
 
 async function startServer() {
@@ -17,20 +18,39 @@ async function startServer() {
   app.use(cors());
   app.use(bodyParser.json());
 
+let lastWebhookLog: any = null;
+
   // --- WEBHOOK WHATSAPP (VALIDAÇÃO) ---
   app.get("/webhook", (req, res) => {
-    console.log("Recebida tentativa de validação de Webhook:", req.query);
     const mode = req.query["hub.mode"];
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
 
+    lastWebhookLog = {
+      timestamp: new Date().toISOString(),
+      type: "validation",
+      query: req.query
+    };
+
     if (mode === "subscribe" && token === VERIFY_TOKEN) {
-      console.log("WEBHOOK_VERIFIED com sucesso!");
-      res.status(200).send(challenge);
+      console.log("Validação aprovada!");
+      return res.status(200).send(challenge);
     } else {
-      console.warn("Falha na verificação do token do Webhook. Recebido:", token, "Esperado:", VERIFY_TOKEN);
-      res.sendStatus(403);
+      console.error("Validação falhou.");
+      return res.status(403).send("Token inválido");
     }
+  });
+
+  // Rota de Debug para o App saber se o sinal chegou
+  app.get("/api/debug/webhook", (req, res) => {
+    res.json(lastWebhookLog || { status: "Aguardando sinal da Meta..." });
+  });
+
+  // --- ARMAZENAMENTO TEMPORÁRIO DE MENSAGENS RECEBIDAS ---
+  let receivedMessages: any[] = [];
+
+  app.get("/api/whatsapp/messages", (req, res) => {
+    res.json(receivedMessages);
   });
 
   // --- WEBHOOK WHATSAPP (RECEBIMENTO DE MENSAGENS) ---
@@ -45,13 +65,21 @@ async function startServer() {
         body.entry[0].changes[0].value.messages[0]
       ) {
         const message = body.entry[0].changes[0].value.messages[0];
-        const from = message.from; // Número do cliente
-        const text = message.text.body;
-
-        console.log(`Mensagem recebida de ${from}: ${text}`);
+        const contact = body.entry[0].changes[0].value.contacts?.[0];
         
-        // No futuro: Integrar com Firestore aqui via Admin SDK ou Proxy
-        // Por enquanto, logamos no servidor.
+        const newMessage = {
+          id: message.id,
+          from: message.from,
+          name: contact?.profile?.name || "Cliente WhatsApp",
+          text: message.text?.body || "(Mídia/Outro)",
+          timestamp: new Date().toISOString(),
+          status: 'received'
+        };
+
+        receivedMessages.unshift(newMessage); // Adiciona no topo
+        if (receivedMessages.length > 50) receivedMessages.pop();
+
+        console.log(`Nova mensagem de ${newMessage.name}: ${newMessage.text}`);
       }
       res.sendStatus(200);
     } else {
