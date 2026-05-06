@@ -1,0 +1,67 @@
+{
+  "entities": {
+    "Lead": {
+      "title": "Lead",
+      "description": "A potential labor law client",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "status": { "type": "string", "enum": ["new", "started", "qualifying", "viable", "proposed", "negotiating", "closed", "lost"] },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "qualification": {
+          "type": "object",
+          "properties": {
+            "answers": { "type": "object" },
+            "score": { "type": "number" },
+            "classification": { "type": "string", "enum": ["hot", "warm", "cold"] },
+            "analysis": { "type": "string" },
+            "isViable": { "type": "boolean" }
+          }
+        },
+        "lastInteraction": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone", "status", "createdAt", "updatedAt"]
+    },
+    "Interaction": {
+      "title": "Interaction",
+      "description": "A record of a conversation or activity with a lead",
+      "type": "object",
+      "properties": {
+        "leadId": { "type": "string" },
+        "type": { "type": "string", "enum": ["incoming", "outgoing", "system", "note"] },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "author": { "type": "string" }
+      },
+      "required": ["leadId", "type", "content", "timestamp"]
+    },
+    "Template": {
+      "title": "Message Template",
+      "description": "Predefined message for quick responses",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "required": ["name", "content"]
+    }
+  },
+  "firestore": {
+    "leads": {
+      "schema": "Lead",
+      "description": "Collection of leads"
+    },
+    "leads/{leadId}/interactions": {
+      "schema": "Interaction",
+      "description": "Interactions specific to a lead"
+    },
+    "templates": {
+      "schema": "Template",
+      "description": "Message templates"
+    }
+  }
+}

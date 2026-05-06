@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Lead validation
+    function isValidLead(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 256 &&
+             data.phone is string && data.phone.size() >= 8 &&
+             data.status in ['new', 'started', 'qualifying', 'viable', 'proposed', 'negotiating', 'closed', 'lost'];
+    }
+
+    match /leads/{leadId} {
+      // For this sample, we'll allow all authenticated users in the law firm to access leads.
+      // In a multi-tenant app, we'd check organization membership.
+      allow list: if isSignedIn();
+      allow get: if isSignedIn();
+      allow create: if isSignedIn() && isValidLead(incoming());
+      allow update: if isSignedIn() && isValidLead(incoming());
+      allow delete: if isSignedIn();
+
+      match /interactions/{interactionId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    match /templates/{templateId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+  }
+}
