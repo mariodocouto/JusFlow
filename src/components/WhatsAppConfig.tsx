@@ -4,190 +4,150 @@ import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 
 export const WhatsAppConfig: React.FC = () => {
-  const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('connected');
-  const [instanceId, setInstanceId] = useState('1037735152765682');
-  const [token, setToken] = useState('EAANyytfxNvw...');
+  const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+  const [qrCode, setQrCode] = useState<string | null>(null);
 
   const handleConnect = () => {
     setStatus('connecting');
-    // Simulando processo de handshake com o gateway
+    // Simulando a geração de um QR Code de pareamento (como no WhatsApp Web)
     setTimeout(() => {
-      setStatus('connected');
-    }, 3000);
+      setQrCode('https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=JusFlow_Pairing_Mock_123456');
+    }, 1500);
+  };
+
+  const simulateSuccess = () => {
+    setStatus('connected');
+    setQrCode(null);
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-8">
-      <header>
-        <h1 className="text-3xl font-bold text-gray-900">Conexão WhatsApp</h1>
-        <p className="text-gray-500 mt-1">Conecte sua conta para sincronizar conversas e automatizar leads.</p>
-      </header>
+    <div className="p-8 max-w-4xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-3xl font-black text-gray-900 tracking-tight">Conectar WhatsApp</h2>
+          <p className="text-gray-500 mt-1">Vincule seu número pessoal como um dispositivo pareado.</p>
+        </div>
+        <div className={cn(
+          "px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center space-x-2",
+          status === 'connected' ? "bg-emerald-100 text-emerald-600" : 
+          status === 'connecting' ? "bg-amber-100 text-amber-600 animate-pulse" : "bg-gray-100 text-gray-400"
+        )}>
+          <div className={cn("w-2 h-2 rounded-full", 
+            status === 'connected' ? "bg-emerald-500" : 
+            status === 'connecting' ? "bg-amber-500" : "bg-gray-400"
+          )} />
+          <span>{status === 'connected' ? 'Conectado' : status === 'connecting' ? 'Aguardando QR Code' : 'Desconectado'}</span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Status Card */}
-        <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-gray-900 flex items-center">
-               <Smartphone size={20} className="mr-2 text-indigo-500" />
-               Estado da Instância
-            </h3>
-            <span className={cn(
-              "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest",
-              status === 'connected' ? "bg-emerald-100 text-emerald-700" : 
-              status === 'connecting' ? "bg-amber-100 text-amber-700 animate-pulse" : 
-              "bg-red-100 text-red-700"
-            )}>
-              {status === 'connected' ? 'Conectado' : status === 'connecting' ? 'Puxando conversas...' : 'Desconectado'}
-            </span>
-          </div>
+        {/* Esquerda: Instruções e Ação */}
+        <div className="space-y-6">
+          <div className="bg-white p-8 border border-gray-100 rounded-3xl shadow-sm space-y-6">
+            <h3 className="text-lg font-bold text-gray-900">Como conectar?</h3>
+            <ul className="space-y-4">
+              {[
+                "Abra o WhatsApp no seu celular",
+                "Toque em Mais opções (⋮) ou Configurações (⚙️)",
+                "Selecione 'Dispositivos conectados'",
+                "Toque em 'Conectar um dispositivo' e aponte para o QR Code"
+              ].map((step, i) => (
+                <li key={i} className="flex items-start space-x-3 text-sm text-gray-600">
+                  <span className="w-5 h-5 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-[10px] mt-0.5">
+                    {i + 1}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ul>
 
-          {status === 'disconnected' ? (
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  Utilizamos o protocolo <b>Multi-Device</b>. Para conectar, insira suas credenciais do gateway ou escaneie o QR Code.
-                </p>
-              </div>
-              
+            {status === 'disconnected' && (
+              <button 
+                onClick={handleConnect}
+                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center space-x-3 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+              >
+                <div className="bg-white/20 p-1 rounded-lg"><Smartphone size={20} /></div>
+                <span>Gerar QR Code de Conexão</span>
+              </button>
+            )}
+
+            {status === 'connected' && (
               <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">ID da Instância (Opcional)</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: JusFlow_Office_01"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono text-sm"
-                    value={instanceId}
-                    onChange={(e) => setInstanceId(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Token de Acesso</label>
-                  <input 
-                    type="password" 
-                    placeholder="Seu token secreto"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono text-sm"
-                    value={token}
-                    onChange={(e) => setToken(e.target.value)}
-                  />
+                <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
+                    <CheckCircle2 size={24} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">Sua conta está ativa</p>
+                    <p className="text-xs text-emerald-600 font-medium">Sincronizando em tempo real</p>
+                  </div>
                 </div>
                 <button 
-                  onClick={handleConnect}
-                  disabled={!token}
-                  className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all disabled:opacity-50"
+                  onClick={() => setStatus('disconnected')}
+                  className="w-full py-3 text-red-500 font-bold text-sm bg-red-50 rounded-2xl hover:bg-red-100 transition-all"
                 >
-                  Conectar via Gateway
+                  Desconectar Dispositivo
                 </button>
-                <div className="text-center">
-                  <span className="text-xs text-gray-400">ou</span>
+              </div>
+            )}
+          </div>
+
+          <div className="p-6 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+            <h4 className="text-[10px] font-black text-gray-400 uppercase mb-3">Vantagens deste modelo</h4>
+            <p className="text-xs text-gray-500 leading-relaxed italic">
+              "Diferente da API oficial, aqui você usa seu próprio número pessoal. O JusFlow funciona como uma máscara que organiza suas etiquetas e threads sem custar por mensagem enviada."
+            </p>
+          </div>
+        </div>
+
+        {/* Direita: QR Code */}
+        <div className="bg-white border border-gray-100 rounded-3xl p-8 flex flex-col items-center justify-center shadow-sm min-h-[400px]">
+          {status === 'disconnected' && (
+            <div className="text-center space-y-4 opacity-50">
+              <div className="w-48 h-48 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center mx-auto">
+                <Smartphone size={40} className="text-gray-300" />
+              </div>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Clique para gerar o código</p>
+            </div>
+          )}
+
+          {status === 'connecting' && qrCode && (
+            <div className="text-center space-y-6">
+              <div className="p-4 bg-white border-2 border-indigo-600 rounded-3xl shadow-2xl animate-in fade-in zoom-in duration-500">
+                <img src={qrCode} alt="WhatsApp QR Code" className="w-64 h-64" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-bold text-gray-900">Escaneie o código acima</p>
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" />
+                  <span className="text-xs text-gray-500">Aguardando confirmação do celular...</span>
                 </div>
-                <button className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-all flex items-center justify-center space-x-2">
-                  <QrCode size={20} />
-                  <span>Gerar QR Code JusFlow</span>
+                <button 
+                  onClick={simulateSuccess}
+                  className="mt-4 text-[10px] text-gray-300 hover:text-indigo-600 transition-colors uppercase font-bold"
+                >
+                  (Simular Sucesso do Scan)
                 </button>
               </div>
             </div>
-          ) : status === 'connecting' ? (
-            <div className="flex flex-col items-center justify-center py-12 space-y-4">
-               <RefreshCw className="animate-spin text-indigo-500" size={48} />
-               <p className="text-sm font-medium text-gray-600">Sincronizando conversas recentes...</p>
-               <span className="text-xs text-gray-400 italic">Isso pode levar alguns minutos dependendo do seu histórico.</span>
-            </div>
-          ) : (
-            <div className="space-y-6">
-               <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-3xl flex items-center space-x-4">
-                  <CheckCircle2 size={32} className="text-emerald-500" />
-                  <div>
-                    <h4 className="font-bold text-emerald-900">Tudo pronto!</h4>
-                    <p className="text-xs text-emerald-700">642 conversas sincronizadas com sucesso.</p>
-                  </div>
-               </div>
-               
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white p-4 border border-gray-100 rounded-2xl text-center">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status</p>
-                    <p className="font-bold text-emerald-600">Ativo</p>
-                  </div>
-                  <div className="bg-white p-4 border border-gray-100 rounded-2xl text-center">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Última Sinc.</p>
-                    <p className="font-bold text-gray-900">Agora</p>
-                  </div>
-               </div>
+          )}
 
-               <div className="bg-white p-6 border border-gray-100 rounded-3xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-gray-400 uppercase">Configuração do Webhook (Meta)</h4>
-                    <button 
-                      onClick={async () => {
-                        const res = await fetch('/api/debug/webhook');
-                        const data = await res.json();
-                        alert(data.timestamp ? `Último sinal recebido em: ${data.timestamp}` : "Nenhum sinal detectado ainda. Verifique se o link é público.");
-                      }}
-                      className="text-[10px] text-indigo-600 font-bold hover:underline"
-                    >
-                      Testar Conectividade
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-[10px] text-gray-500 uppercase font-bold">Callback URL (Cole isto na Meta)</p>
-                    <code className="block p-3 bg-gray-50 rounded-xl text-[10px] break-all font-mono text-indigo-600 border border-gray-100">
-                      {window.location.origin}/webhook
-                    </code>
-                    <p className="text-[8px] text-gray-400 italic">* Se o link acima começar com 'ais-dev' ou 'ais-pre', ele é privado e o WhatsApp não conseguirá validar. Use o link do botão 'Publish'.</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-[10px] text-gray-500 uppercase font-bold">Verify Token</p>
-                    <code className="block p-3 bg-gray-50 rounded-xl text-xs font-mono text-indigo-600 border border-gray-100">
-                      jusflow_secret_token_123
-                    </code>
-                  </div>
-               </div>
-
-               <button 
-                onClick={() => setStatus('disconnected')}
-                className="w-full py-3 text-red-500 font-bold text-sm bg-red-50 rounded-2xl hover:bg-red-100 transition-all"
-               >
-                 Desconectar Dispositivo
-               </button>
+          {status === 'connected' && (
+            <div className="text-center space-y-6">
+              <div className="w-32 h-32 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                <Smartphone size={48} />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xl font-bold text-gray-900">Dispositivo Pareado</h3>
+                <p className="text-sm text-gray-500">Seu iPhone 15 Pro está conectado.</p>
+              </div>
+              <div className="flex justify-center space-x-2">
+                 {['Ativo', 'Seguro', 'Criptografado'].map(tag => (
+                   <span key={tag} className="text-[9px] bg-gray-100 px-2 py-1 rounded-md text-gray-500 font-bold uppercase">{tag}</span>
+                 ))}
+              </div>
             </div>
           )}
-        </div>
-
-        {/* Info & Security */}
-        <div className="space-y-6">
-          <div className="bg-indigo-600 p-8 rounded-3xl text-white shadow-xl shadow-indigo-200">
-            <ShieldCheck size={32} className="mb-4 opacity-50" />
-            <h3 className="text-xl font-bold mb-2">Privacidade Legal</h3>
-            <p className="text-indigo-100 text-sm leading-relaxed">
-              O JusFlow processa seus dados localmente. Somente os leads qualificados e notas internas são persistidos no banco de dados seguro do escritório.
-            </p>
-          </div>
-
-          <div className="bg-amber-50 border border-amber-100 p-6 rounded-3xl flex items-start space-x-3">
-             <AlertTriangle className="text-amber-500 shrink-0" size={20} />
-             <div>
-                <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Aviso Importante</p>
-                <p className="text-xs text-amber-700 leading-relaxed">
-                  Para puxar conversas antigas e manter o status de "extensão", mantenha sua instância do gateway ativa 24/7.
-                </p>
-             </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-gray-100">
-             <h4 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-tighter">Como Funciona?</h4>
-             <ul className="space-y-3">
-                {[
-                  "Conecte via QR Code para espelhamento real-time.",
-                  "O JusFlow varre as palavras-chave (Ex: 'Advogado', 'Trabalho').",
-                  "Leads detectados entram automaticamente no Pipeline.",
-                  "Histórico de conversas vira prova organizada no PDF."
-                ].map((step, idx) => (
-                  <li key={idx} className="flex items-start space-x-3 text-xs text-gray-500">
-                    <span className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center shrink-0 font-bold">{idx + 1}</span>
-                    <span>{step}</span>
-                  </li>
-                ))}
-             </ul>
-          </div>
         </div>
       </div>
     </div>

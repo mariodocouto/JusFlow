@@ -57,21 +57,22 @@ let lastWebhookLog: any = null;
   app.post("/webhook", (req, res) => {
     const body = req.body;
 
-    if (body.object) {
+    console.log("--- WEBHOOK POST RECEBIDO ---");
+    console.log(JSON.stringify(body, null, 2));
+
+    if (body.object === "whatsapp_business_account") {
       if (
-        body.entry &&
-        body.entry[0].changes &&
-        body.entry[0].changes[0].value.messages &&
-        body.entry[0].changes[0].value.messages[0]
+        body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]
       ) {
-        const message = body.entry[0].changes[0].value.messages[0];
-        const contact = body.entry[0].changes[0].value.contacts?.[0];
+        const value = body.entry[0].changes[0].value;
+        const message = value.messages[0];
+        const contact = value.contacts?.[0];
         
         const newMessage = {
           id: message.id,
           from: message.from,
           name: contact?.profile?.name || "Cliente WhatsApp",
-          text: message.text?.body || "(Mídia/Outro)",
+          text: message.text?.body || "(Mídia ou Mensagem Especial)",
           timestamp: new Date().toISOString(),
           status: 'received'
         };
@@ -79,11 +80,14 @@ let lastWebhookLog: any = null;
         receivedMessages.unshift(newMessage); // Adiciona no topo
         if (receivedMessages.length > 50) receivedMessages.pop();
 
-        console.log(`Nova mensagem de ${newMessage.name}: ${newMessage.text}`);
+        console.log(`SUCESSO: Mensagem de ${newMessage.name}: ${newMessage.text}`);
+      } else if (body.entry?.[0]?.changes?.[0]?.value?.statuses) {
+        console.log("Status de mensagem recebido (lida/entregue)");
       }
       res.sendStatus(200);
     } else {
-      res.sendStatus(404);
+      console.warn("Webhook recebido mas 'object' não é whatsapp_business_account");
+      res.sendStatus(200); // Sempre retorne 200 para a Meta não desativar o webhook
     }
   });
 
